@@ -4,6 +4,8 @@ import json
 from threading import Thread
 
 # ---ПУГАМЕ НАЛАШТУВАННЯ ---
+mixer.init()
+
 WIDTH, HEIGHT = 800, 600
 init()
 screen = display.set_mode((WIDTH, HEIGHT))
@@ -43,6 +45,10 @@ font_main = font.Font(None, 36)
 # --- ЗОБРАЖЕННЯ ----
 
 # --- ЗВУКИ ---
+
+hit_wall = mixer.Sound("pingpongbat.ogg")
+hit_pratfrom = mixer.Sound("ping_pong_8bit_plop.ogg")
+fon = None
 
 # --- ГРА ---
 game_over = False
@@ -97,12 +103,10 @@ while True:
 
         if game_state['sound_event']:
             if game_state['sound_event'] == 'wall_hit':
-                # звук відбиття м'ячика від стін
-                pass
-            if game_state['sound_event'] == 'platform_hit':
-                # звук відбиття м'ячика від платформи
-                pass
+                hit_wall.play()
 
+            if game_state['sound_event'] == 'platform_hit':
+                hit_pratfrom.play()
     else:
         wating_text = font_main.render(f"Очікування гравців...", True, (255, 255, 255))
         screen.blit(wating_text, (WIDTH // 2 - 25, 20))
