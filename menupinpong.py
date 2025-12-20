@@ -1,4 +1,5 @@
 import pygame
+import client
 
 pygame.init()
 pygame.mixer.init()
@@ -85,7 +86,7 @@ exit_settings_btn.color_hover = (200, 0, 0)
 # Настройки окна settings
 frame_settings = pygame.Rect(WIDTH // 2 - 200, HEIGHT // 2 - 250, 400, 500)
 images_ball = Button(WIDTH // 2 - 162, HEIGHT // 2 - 100, 325, 50, "Ball Images")
-images_bg = Button(WIDTH // 2 - 162, HEIGHT // 2 - 25, 325, 50, "Background Images")
+images_bg = Button(WIDTH // 2 - 162, HEIGHT // 2 - 25, 325, 50, "Bg Images")
 mixic = Button(WIDTH // 2 - 162, HEIGHT // 2 + 50, 325, 50, "Music")
 
 # Окно выбора мяча
@@ -129,7 +130,7 @@ bg1 = pygame.transform.scale(bg1, (200, 100))
 bg2 = pygame.image.load("images/bg_2.jpg")
 bg2 = pygame.transform.scale(bg2, (200, 100))
 
-bg3 = pygame.image.load("images/bg_3.png")
+bg3 = pygame.image.load("images/bg_3.jpg")
 bg3 = pygame.transform.scale(bg3, (200, 100))
 
 bg4 = pygame.image.load("images/bg_4.jpg")
@@ -142,7 +143,7 @@ bg3_frame = pygame.Rect(475, 70, 225, 125)      # Справа сверху
 bg4_frame = pygame.Rect(475, 220, 225, 125)     # Справа снизу
 
 # Кнопка применения фона (опущена ниже)
-apply_bg_btn = Button(300, 450, 200, 50, "Apply Background")
+apply_bg_btn = Button(250, 450, 300, 50, "Apply Bg")
 
 # Окно музыки
 exit_mizic = Button(WIDTH // 2 + 130, 75, 50, 50, "x")
@@ -162,6 +163,9 @@ music_started = True
 # Переменные для хранения выбранных элементов
 selected_bg = None
 selected_ball = None
+selected_bg_1 = None
+
+start_game_flag = False
 
 clock = pygame.time.Clock()
 running = True
@@ -183,7 +187,10 @@ while running:
             if scen == SCENMENU:
                 if start_btn.rect.collidepoint(event.pos):
                     # Здесь будет запуск игры
-                    print("Game started!")
+                    import subprocess
+                    subprocess.Popen(['python', 'server.py'])
+                    start_game_flag = True
+                    running = False
                     click_sound.play()
                 elif settings_btn.rect.collidepoint(event.pos):
                     scen = SCENSETTINGS
@@ -212,22 +219,23 @@ while running:
                     click_sound.play()
                 elif apply_ball_btn.rect.collidepoint(event.pos):
                     if selected_ball:
-                        print(f"Ball applied: {selected_ball}")
+                        with open("data.txt", "w") as f:
+                            f.write(selected_ball)
                         click_sound.play()
                 elif ball1_frame.collidepoint(event.pos):
-                    selected_ball = "ball_1"
+                    selected_ball = "1"
                     print("Ball 1 selected")
                     click_sound.play()
                 elif ball2_frame.collidepoint(event.pos):
-                    selected_ball = "ball_2"
+                    selected_ball = "2"
                     print("Ball 2 selected")
                     click_sound.play()
                 elif ball3_frame.collidepoint(event.pos):
-                    selected_ball = "ball_3"
+                    selected_ball = "3"
                     print("Ball 3 selected")
                     click_sound.play()
                 elif ball4_frame.collidepoint(event.pos):
-                    selected_ball = "ball_4"
+                    selected_ball = "4"
                     print("Ball 4 selected")
                     click_sound.play()
 
@@ -238,24 +246,28 @@ while running:
                 elif apply_bg_btn.rect.collidepoint(event.pos):
                     if selected_bg:
                         bg = selected_bg
-                        print("Background applied!")
+                        with open("data_bg.txt", "w") as f:
+                            f.write(selected_bg_1)
                         click_sound.play()
                 elif bg1_frame.collidepoint(event.pos):
                     selected_bg = pygame.transform.scale(pygame.image.load("images/bg_1.jpg"), (WIDTH, HEIGHT))
-                    print("BG 1 selected")
+                    selected_bg_1 = "bg_1"
                     click_sound.play()
                 elif bg2_frame.collidepoint(event.pos):
                     selected_bg = pygame.transform.scale(pygame.image.load("images/bg_2.jpg"), (WIDTH, HEIGHT))
-                    print("BG 2 selected")
+                    selected_bg_1 = "bg_2"
                     click_sound.play()
                 elif bg3_frame.collidepoint(event.pos):
                     selected_bg = pygame.transform.scale(pygame.image.load("images/bg_3.png"), (WIDTH, HEIGHT))
-                    print("BG 3 selected")
+                    selected_bg_1 = "bg_3"
                     click_sound.play()
                 elif bg4_frame.collidepoint(event.pos):
                     selected_bg = pygame.transform.scale(pygame.image.load("images/bg_4.jpg"), (WIDTH, HEIGHT))
-                    print("BG 4 selected")
+                    selected_bg_1 = "bg_4"
                     click_sound.play()
+                
+                with open("data_bg.txt", "w") as f:
+                    f.write(selected_bg_1)
 
             elif scen == SCENMUSIC:
                 if exit_mizic.rect.collidepoint(event.pos):
@@ -314,7 +326,7 @@ while running:
         # Рамка 1 (слева сверху)
         pygame.draw.rect(screen, frame_color, ball1_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), ball1_frame, width=2, border_radius=10)
-        if ball1_frame.collidepoint(mouse_pos):
+        if ball1_frame.collidepoint(mouse_pos) or selected_ball == "1":
             pygame.draw.rect(screen, (255, 255, 0), ball1_frame, width=4, border_radius=10)  # Желтая подсветка
         # Картинка мяча по центру рамки
         screen.blit(ball1, (ball1_frame.x + (ball1_frame.width - 120) // 2, ball1_frame.y + (ball1_frame.height - 120) // 2))
@@ -322,21 +334,21 @@ while running:
         # Рамка 2 (слева снизу)
         pygame.draw.rect(screen, frame_color, ball2_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), ball2_frame, width=2, border_radius=10)
-        if ball2_frame.collidepoint(mouse_pos):
+        if ball2_frame.collidepoint(mouse_pos) or selected_ball == "2":
             pygame.draw.rect(screen, (255, 255, 0), ball2_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(ball2, (ball2_frame.x + (ball2_frame.width - 120) // 2, ball2_frame.y + (ball2_frame.height - 120) // 2))
         
         # Рамка 3 (справа сверху)
         pygame.draw.rect(screen, frame_color, ball3_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), ball3_frame, width=2, border_radius=10)
-        if ball3_frame.collidepoint(mouse_pos):
+        if ball3_frame.collidepoint(mouse_pos) or selected_ball == "3":
             pygame.draw.rect(screen, (255, 255, 0), ball3_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(ball3, (ball3_frame.x + (ball3_frame.width - 120) // 2, ball3_frame.y + (ball3_frame.height - 120) // 2))
         
         # Рамка 4 (справа снизу)
         pygame.draw.rect(screen, frame_color, ball4_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), ball4_frame, width=2, border_radius=10)
-        if ball4_frame.collidepoint(mouse_pos):
+        if ball4_frame.collidepoint(mouse_pos) or selected_ball == "4":
             pygame.draw.rect(screen, (255, 255, 0), ball4_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(ball4, (ball4_frame.x + (ball4_frame.width - 120) // 2, ball4_frame.y + (ball4_frame.height - 120) // 2))
         
@@ -363,7 +375,7 @@ while running:
         # Рамка 1 (слева сверху)
         pygame.draw.rect(screen, frame_color, bg1_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), bg1_frame, width=2, border_radius=10)
-        if bg1_frame.collidepoint(mouse_pos):
+        if bg1_frame.collidepoint(mouse_pos) or selected_bg_1 == "bg_1":
             pygame.draw.rect(screen, (255, 255, 0), bg1_frame, width=4, border_radius=10)  # Желтая подсветка
         # Картинка по центру рамки
         screen.blit(bg1, (bg1_frame.x + (bg1_frame.width - 200) // 2, bg1_frame.y + (bg1_frame.height - 100) // 2))
@@ -371,21 +383,21 @@ while running:
         # Рамка 2 (слева снизу)
         pygame.draw.rect(screen, frame_color, bg2_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), bg2_frame, width=2, border_radius=10)
-        if bg2_frame.collidepoint(mouse_pos):
+        if bg2_frame.collidepoint(mouse_pos) or selected_bg_1 == "bg_2":
             pygame.draw.rect(screen, (255, 255, 0), bg2_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(bg2, (bg2_frame.x + (bg2_frame.width - 200) // 2, bg2_frame.y + (bg2_frame.height - 100) // 2))
         
         # Рамка 3 (справа сверху)
         pygame.draw.rect(screen, frame_color, bg3_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), bg3_frame, width=2, border_radius=10)
-        if bg3_frame.collidepoint(mouse_pos):
+        if bg3_frame.collidepoint(mouse_pos) or selected_bg_1 == "bg_3":
             pygame.draw.rect(screen, (255, 255, 0), bg3_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(bg3, (bg3_frame.x + (bg3_frame.width - 200) // 2, bg3_frame.y + (bg3_frame.height - 100) // 2))
         
         # Рамка 4 (справа снизу)
         pygame.draw.rect(screen, frame_color, bg4_frame, border_radius=10)
         pygame.draw.rect(screen, (120, 120, 120), bg4_frame, width=2, border_radius=10)
-        if bg4_frame.collidepoint(mouse_pos):
+        if bg4_frame.collidepoint(mouse_pos) or selected_bg_1 == "bg_4":
             pygame.draw.rect(screen, (255, 255, 0), bg4_frame, width=4, border_radius=10)  # Желтая подсветка
         screen.blit(bg4, (bg4_frame.x + (bg4_frame.width - 200) // 2, bg4_frame.y + (bg4_frame.height - 100) // 2))
         
@@ -414,6 +426,9 @@ while running:
 
     pygame.display.update()
     clock.tick(60)
+
+if start_game_flag:
+    client.start_game()
 
 # Останавливаем музыку при выходе
 bg_sound.stop()
